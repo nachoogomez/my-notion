@@ -1,0 +1,98 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+
+
+layer base {
+  :root {
+    --background: 10 10% 4%;
+    --foreground: 0 0% 98%;
+    --card: 17 17% 7%;
+    --card-foreground: 0 0% 98%;
+    --popover: 17 17% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 17 17% 12%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 17 17% 12%;
+    --muted-foreground: 0 0% 53%;
+    --accent: 17 17% 12%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 17 17% 12%;
+    --input: 17 17% 12%;
+    --ring: 217 91% 60%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --radius: 0.5rem;
+    --sidebar-background: 17 17% 7%;
+    --sidebar-foreground: 0 0% 53%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 17 17% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 17 17% 12%;
+    --sidebar-ring: 217 91% 60%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden;
+  }
+  
+  body {
+    @apply bg-black text-white;
+  }
+  
+  #root {
+    width: 100vw;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+  }
+  
+  main {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Asegurar que los contenedores no tengan límites de ancho */
+  .container {
+    max-width: none !important;
+    width: 100% !important;
+  }
+  
+  /* Forzar ancho completo para elementos específicos */
+  [data-slot="sidebar-inset"] {
+    width: 100% !important;
+    max-width: none !important;
+  }
+  
+  /* Forzar que los cards usen todo el ancho */
+  [data-slot="card"] {
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
+
+.line-clamp-6 {
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
