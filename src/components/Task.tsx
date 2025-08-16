@@ -245,14 +245,6 @@ export function TasksView() {
               <BarChart3 className="h-4 w-4 mr-2" />
               Stats
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-[#1f1f1f] text-[#888888] hover:bg-[#1f1f1f] bg-transparent"
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-            </Button>
           </div>
         </div>
 
@@ -318,7 +310,7 @@ export function TasksView() {
         )}
 
         {/* Add Task Button */}
-        <div className="mb-6">
+        <div className="mb-6 flex gap-2">
           <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-[#2563eb] hover:bg-[#1d4ed8]">
             <Plus className="h-4 w-4 mr-2" />
             Add New Task
@@ -426,7 +418,35 @@ export function TasksView() {
         {/* Completed Tasks */}
         {completedTasks.length > 0 && (
           <div>
-            <h2 className="text-xl font-semibold text-white mb-4">Completed ({completedTasks.length})</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-white">
+                Completed ({completedTasks.length})
+              </h2>
+              <Button
+                variant="outline"
+                className="border-[#1f1f1f] text-red-400 hover:bg-[#1f1f1f] bg-transparent"
+                onClick={async () => {
+                  if (!user?.id) return;
+                  if (
+                    window.confirm(
+                      "Are you sure you want to delete all completed tasks? This action cannot be undone."
+                    )
+                  ) {
+                    try {
+                      await TaskService.deleteAllCompleteTasks(user.id);
+                      setTasks(tasks.filter((task) => !task.completed));
+                      loadStats();
+                    } catch (error) {
+                      alert("Error deleting completed tasks. Please try again.");
+                    }
+                  }
+                }}
+                disabled={completedTasks.length === 0}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete All Completed
+              </Button>
+            </div>
             <div className="space-y-3">
               {completedTasks.map((task) => (
                 <Card key={task.id} className="bg-[#111111] border-[#1f1f1f] opacity-75">

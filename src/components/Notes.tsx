@@ -246,7 +246,7 @@ export function NotesView() {
               }}
               className="h-6 w-6 p-0 hover:bg-black/10"
             >
-              <Eye className="h-3 w-3" />
+              <Eye className="h-3 w-3 text-black" />
             </Button>
             <Button
               variant="ghost"
@@ -257,7 +257,7 @@ export function NotesView() {
               }}
               className="h-6 w-6 p-0 hover:bg-black/10"
             >
-              <Pin className={`h-3 w-3 ${note.pinned ? "fill-current" : ""}`} />
+              <Pin className={`h-3 w-3 text-black ${note.pinned ? "fill-current" : ""}`} />
             </Button>
             <Button
               variant="ghost"

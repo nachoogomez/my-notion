@@ -331,4 +331,19 @@ export class TaskService {
       throw error
     }
   }
+
+  // Delete all completed tasks
+  static async deleteAllCompleteTasks(userId: string): Promise<void> {
+    try {
+      const { error } = await supabase.from("tasks").delete().eq("user_id", userId).eq("completed", true)
+
+      if (error) {
+        console.error("Error deleting all completed tasks:", error)
+        throw error
+      }
+    } catch (error) {
+      console.error("Error in deleteAllCompleteTasks:", error)
+      throw error
+    }
+  }
 }

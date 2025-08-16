@@ -67,7 +67,7 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     onClick={() => navigate(item.path)}
                     isActive={location.pathname === item.path}
-                    className="text-[#888888] hover:text-white hover:bg-[#1f1f1f] data-[active=true]:bg-[#2563eb] data-[active=true]:text-white rounded-md"
+                    className="text-[#888888] hover:text-white hover:bg-[#1f1f1f] data-[active=true]:bg-[#2563eb] data-[active=true]:text-white rounded-md text-base font-medium py-6"
                   >
                     <item.icon className="h-4 w-4" />
                     <span>{item.title}</span>
