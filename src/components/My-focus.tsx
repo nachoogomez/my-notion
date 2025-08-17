@@ -503,40 +503,42 @@ export function MyFocusView() {
 
                   <div className="space-y-2 min-h-[200px]">
                     {weeklyRoutines[day.key].map((item) => (
-                      <div
-                        key={item.id}
-                        className="group p-2 rounded bg-[#1a1a1a] hover:bg-[#1f1f1f] transition-colors cursor-pointer"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1 mb-1">
-                              <div className={`w-2 h-2 rounded-full ${item.color}`} />
-                              <span className="text-white text-xs font-medium truncate max-w-[120px] block">{item.title}</span>
+                      "start_time" in item && "end_time" in item ? (
+                        <div
+                          key={item.id}
+                          className="group p-2 rounded bg-[#1a1a1a] hover:bg-[#1f1f1f] transition-colors cursor-pointer"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1 mb-1">
+                                <div className={`w-2 h-2 rounded-full ${item.color}`} />
+                                <span className="text-white text-xs font-medium truncate max-w-[120px] block">{item.title}</span>
+                              </div>
+                              <p className="text-[#888888] text-xs">
+                                {formatTime(item.start_time)} - {formatTime(item.end_time)}
+                              </p>
                             </div>
-                            <p className="text-[#888888] text-xs">
-                              {formatTime(item.start_time)} - {formatTime(item.end_time)}
-                            </p>
-                          </div>
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                            <Button
-                              onClick={() => openEditDialog(item as Routine)}
-                              size="sm"
-                              variant="ghost"
-                              className="h-5 w-5 p-0 text-[#888888] hover:text-white"
-                            >
-                              <Edit className="h-2 w-2" />
-                            </Button>
-                            <Button
-                              onClick={() => handleDelete(item.id, day.key)}
-                              size="sm"
-                              variant="ghost"
-                              className="h-5 w-5 p-0 text-red-400 hover:text-red-300"
-                            >
-                              <Trash2 className="h-2 w-2" />
-                            </Button>
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                              <Button
+                                onClick={() => openEditDialog(item as Routine)}
+                                size="sm"
+                                variant="ghost"
+                                className="h-5 w-5 p-0 text-[#888888] hover:text-white"
+                              >
+                                <Edit className="h-2 w-2" />
+                              </Button>
+                              <Button
+                                onClick={() => handleDelete(item.id, day.key)}
+                                size="sm"
+                                variant="ghost"
+                                className="h-5 w-5 p-0 text-red-400 hover:text-red-300"
+                              >
+                                <Trash2 className="h-2 w-2" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      ) : null
                     ))}
                   </div>
                 </div>

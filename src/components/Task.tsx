@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus, Search, Filter, CheckCircle2, Circle, Edit, Trash2, BarChart3 } from "lucide-react"
+import { Plus, Search, CheckCircle2, Circle, Edit, Trash2, BarChart3 } from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
@@ -10,7 +10,7 @@ import { Textarea } from "./ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
 import { useAuth } from "../context/AuthContext"
 import { TaskService } from "../services/taskServices"
-import type { Task, CreateTaskData, TaskFilters, TaskStats } from "../types/task"
+import type { Task, CreateTaskData, TaskStats } from "../types/task"
 
 const CATEGORIES = [
   "General",
@@ -37,7 +37,6 @@ export function TasksView() {
   const [stats, setStats] = useState<TaskStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [filters, setFilters] = useState<TaskFilters>({})
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
@@ -67,20 +66,12 @@ export function TasksView() {
     }
   }, [user?.id])
 
-  // Reload tasks when filters change
-  useEffect(() => {
-    if (user?.id) {
-      loadTasks()
-    }
-  }, [filters, user?.id])
-
   const loadTasks = async () => {
     if (!user?.id) return
 
     try {
       setLoading(true)
       const userTasks = await TaskService.getUserTasks(user.id, {
-        ...filters,
         search: searchTerm || undefined,
       })
       setTasks(userTasks)
@@ -103,7 +94,7 @@ export function TasksView() {
   }
 
   const handleSearch = () => {
-    setFilters({ ...filters, search: searchTerm })
+    loadTasks()
   }
 
   const toggleTask = async (taskId: string) => {
@@ -245,6 +236,7 @@ export function TasksView() {
               <BarChart3 className="h-4 w-4 mr-2" />
               Stats
             </Button>
+            {/* Filter button removed */}
           </div>
         </div>
 
@@ -310,45 +302,12 @@ export function TasksView() {
         )}
 
         {/* Add Task Button */}
-        <div className="mb-6 flex gap-2">
+        <div className="mb-6">
           <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-[#2563eb] hover:bg-[#1d4ed8]">
             <Plus className="h-4 w-4 mr-2" />
             Add New Task
           </Button>
         </div>
-
-        {/* Filter Chips */}
-        {(filters.category || filters.priority || filters.completed !== undefined) && (
-          <div className="flex flex-wrap gap-2 mb-6">
-            {filters.category && (
-              <Badge
-                variant="secondary"
-                className="bg-[#1f1f1f] text-[#888888] cursor-pointer"
-                onClick={() => setFilters({ ...filters, category: undefined })}
-              >
-                Category: {filters.category} ×
-              </Badge>
-            )}
-            {filters.priority && (
-              <Badge
-                variant="secondary"
-                className="bg-[#1f1f1f] text-[#888888] cursor-pointer"
-                onClick={() => setFilters({ ...filters, priority: undefined })}
-              >
-                Priority: {filters.priority} ×
-              </Badge>
-            )}
-            {filters.completed !== undefined && (
-              <Badge
-                variant="secondary"
-                className="bg-[#1f1f1f] text-[#888888] cursor-pointer"
-                onClick={() => setFilters({ ...filters, completed: undefined })}
-              >
-                Status: {filters.completed ? "Completed" : "Pending"} ×
-              </Badge>
-            )}
-          </div>
-        )}
 
         {/* Pending Tasks */}
         <div className="mb-8">
@@ -418,35 +377,7 @@ export function TasksView() {
         {/* Completed Tasks */}
         {completedTasks.length > 0 && (
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-white">
-                Completed ({completedTasks.length})
-              </h2>
-              <Button
-                variant="outline"
-                className="border-[#1f1f1f] text-red-400 hover:bg-[#1f1f1f] bg-transparent"
-                onClick={async () => {
-                  if (!user?.id) return;
-                  if (
-                    window.confirm(
-                      "Are you sure you want to delete all completed tasks? This action cannot be undone."
-                    )
-                  ) {
-                    try {
-                      await TaskService.deleteAllCompleteTasks(user.id);
-                      setTasks(tasks.filter((task) => !task.completed));
-                      loadStats();
-                    } catch (error) {
-                      alert("Error deleting completed tasks. Please try again.");
-                    }
-                  }
-                }}
-                disabled={completedTasks.length === 0}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete All Completed
-              </Button>
-            </div>
+            <h2 className="text-xl font-semibold text-white mb-4">Completed ({completedTasks.length})</h2>
             <div className="space-y-3">
               {completedTasks.map((task) => (
                 <Card key={task.id} className="bg-[#111111] border-[#1f1f1f] opacity-75">
@@ -484,8 +415,8 @@ export function TasksView() {
           <div className="text-center py-12">
             <p className="text-[#888888] text-lg">No tasks found</p>
             <p className="text-[#666666] text-sm mt-2">
-              {searchTerm || Object.keys(filters).length > 0
-                ? "Try adjusting your search or filters"
+              {searchTerm
+                ? "Try adjusting your search"
                 : "Create your first task to get started"}
             </p>
           </div>

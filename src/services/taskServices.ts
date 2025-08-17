@@ -36,7 +36,7 @@ export class TaskService {
       query = query
         .order("completed", { ascending: true })
         .order("priority", { ascending: false })
-        .order("due_date", { ascending: true, nullsLast: true })
+        .order("due_date", { ascending: true, nullsFirst: false })
         .order("created_at", { ascending: false })
 
       const { data, error } = await query
