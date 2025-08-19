@@ -25,6 +25,10 @@ export interface RoutineInstance {
   notes?: string
   created_at: string
   updated_at: string
+  color: string
+  title: string
+  start_time: string
+  end_time: string
   // Joined data from routine
   routine?: Routine
 }

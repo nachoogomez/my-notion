@@ -502,8 +502,16 @@ export function MyFocusView() {
                   </div>
 
                   <div className="space-y-2 min-h-[200px]">
-                    {weeklyRoutines[day.key].map((item) => (
-                      "start_time" in item && "end_time" in item ? (
+                    {weeklyRoutines[day.key]
+                      .filter(
+                        (item): item is Routine =>
+                          "start_time" in item &&
+                          typeof item.start_time === "string" &&
+                          "day_of_week" in item &&
+                          "category" in item &&
+                          "is_active" in item
+                      )
+                      .map((item) => (
                         <div
                           key={item.id}
                           className="group p-2 rounded bg-[#1a1a1a] hover:bg-[#1f1f1f] transition-colors cursor-pointer"
@@ -520,7 +528,7 @@ export function MyFocusView() {
                             </div>
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                               <Button
-                                onClick={() => openEditDialog(item as Routine)}
+                                onClick={() => openEditDialog(item)}
                                 size="sm"
                                 variant="ghost"
                                 className="h-5 w-5 p-0 text-[#888888] hover:text-white"
@@ -538,8 +546,7 @@ export function MyFocusView() {
                             </div>
                           </div>
                         </div>
-                      ) : null
-                    ))}
+                      ))}
                   </div>
                 </div>
               ))}
