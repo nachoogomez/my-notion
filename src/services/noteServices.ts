@@ -301,7 +301,7 @@ export class NoteService {
 
       // Remove the tag
       const currentTags = currentNote.tags || []
-      const updatedTags = currentTags.filter((t) => t !== tag)
+      const updatedTags = currentTags.filter((t: any) => t !== tag)
 
       const { data, error } = await supabase
         .from("notes")
