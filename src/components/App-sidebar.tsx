@@ -22,7 +22,7 @@ const mainItems = [
     path: "/"
   },
   {
-    title: "My Focus",
+    title: "My Routine",
     icon: Focus,
     path: "/my-focus"
   },

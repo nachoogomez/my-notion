@@ -294,7 +294,7 @@ export function MyFocusView() {
             </div>
             <div>
               <p className="text-[#888888] text-sm">Good afternoon,</p>
-              <h1 className="text-white text-xl md:text-2xl font-semibold">My Focus</h1>
+              <h1 className="text-white text-xl md:text-2xl font-semibold">My Routine</h1>
             </div>
           </div>
           <div className="flex items-center gap-3 sm:ml-auto">
