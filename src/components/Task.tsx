@@ -199,6 +199,20 @@ export function TasksView() {
     }
   }
 
+  const deleteAllCompletedTasks = async () => {
+    if (!user?.id) return
+    if (!window.confirm(`Are you sure you want to delete all ${completedTasks.length} completed tasks? This action cannot be undone.`)) return
+
+    try {
+      await TaskService.deleteAllCompleteTasks(user.id)
+      await loadTasks()
+      await loadStats()
+    } catch (error) {
+      console.error("Error deleting all completed tasks:", error)
+      alert("Error deleting completed tasks. Please try again.")
+    }
+  }
+
   const getPriorityColor = (priority: string) => {
     const priorityObj = PRIORITIES.find((p) => p.value === priority)
     return priorityObj?.color || "bg-gray-500"
@@ -398,7 +412,18 @@ export function TasksView() {
         {/* Completed Tasks */}
         {completedTasks.length > 0 && (
           <div>
-            <h2 className="text-xl font-semibold text-white mb-4">Completed ({completedTasks.length})</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-white">Completed ({completedTasks.length})</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={deleteAllCompletedTasks}
+                className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear All
+              </Button>
+            </div>
             <div className="space-y-3">
               {completedTasks.map((task) => (
                 <Card key={task.id} className="bg-[#111111] border-[#1f1f1f] opacity-75">
