@@ -84,7 +84,7 @@ export function NoteEditView({ note, onBack, onSave, onDelete, onTogglePin }: No
   const updatedDate = note?.updated_at || new Date().toISOString()
 
   return (
-    <div className="h-screen bg-[#0a0a0a] flex flex-col">
+    <div className="min-h-full bg-[#0a0a0a] flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-[#1f1f1f]">
         <Button
@@ -126,7 +126,7 @@ export function NoteEditView({ note, onBack, onSave, onDelete, onTogglePin }: No
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-6 overflow-auto">
+      <div className="flex-1 p-6">
         <div className="max-w-4xl mx-auto">
           {/* Title */}
           <Input

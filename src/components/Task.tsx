@@ -1,7 +1,5 @@
-"use client"
-
 import { useState, useEffect } from "react"
-import { Plus, Search, CheckCircle2, Circle, Edit, Trash2, BarChart3 } from "lucide-react"
+import { Plus, Search, CheckCircle2, Circle, Edit, Trash2, BarChart3, Loader2 } from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
@@ -41,6 +39,10 @@ export function TasksView() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [showStats, setShowStats] = useState(false)
+  
+  // Simple debounced search without custom hook
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm)
+  const [isSearching, setIsSearching] = useState(false)
 
   const [newTask, setNewTask] = useState<CreateTaskData>({
     title: "",
@@ -66,13 +68,34 @@ export function TasksView() {
     }
   }, [user?.id])
 
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      setIsSearching(false)
+    }, 300)
+
+    if (searchTerm !== debouncedSearchTerm) {
+      setIsSearching(true)
+    }
+
+    return () => clearTimeout(timer)
+  }, [searchTerm, debouncedSearchTerm])
+
+  // Handle debounced search
+  useEffect(() => {
+    if (user?.id) {
+      loadTasks()
+    }
+  }, [debouncedSearchTerm, user?.id])
+
   const loadTasks = async () => {
     if (!user?.id) return
 
     try {
       setLoading(true)
       const userTasks = await TaskService.getUserTasks(user.id, {
-        search: searchTerm || undefined,
+        search: debouncedSearchTerm || undefined,
       })
       setTasks(userTasks)
     } catch (error) {
@@ -91,10 +114,6 @@ export function TasksView() {
     } catch (error) {
       console.error("Error loading task stats:", error)
     }
-  }
-
-  const handleSearch = () => {
-    loadTasks()
   }
 
   const toggleTask = async (taskId: string) => {
@@ -204,39 +223,41 @@ export function TasksView() {
 
   if (loading) {
     return (
-      <div className="p-6 h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="p-6 min-h-full bg-[#0a0a0a] flex items-center justify-center">
         <div className="text-white text-lg">Loading tasks...</div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 h-screen bg-[#0a0a0a] overflow-auto">
+    <div className="p-3 md:p-6 min-h-full bg-[#0a0a0a]">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-white">Tasks</h1>
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 md:mb-8 gap-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-white">Tasks</h1>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#666666] h-4 w-4" />
+              {isSearching ? (
+                <Loader2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#666666] h-4 w-4 animate-spin" />
+              ) : (
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#666666] h-4 w-4" />
+              )}
               <Input
                 placeholder="Search tasks..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                className="pl-10 bg-[#111111] border-[#1f1f1f] text-white placeholder:text-[#666666]"
+                className="pl-10 bg-[#111111] border-[#1f1f1f] text-white placeholder:text-[#666666] w-full sm:w-auto"
               />
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowStats(!showStats)}
-              className="border-[#1f1f1f] text-[#888888] hover:bg-[#1f1f1f] bg-transparent"
+              className="border-[#1f1f1f] text-[#888888] hover:bg-[#1f1f1f] bg-transparent w-full sm:w-auto"
             >
               <BarChart3 className="h-4 w-4 mr-2" />
               Stats
             </Button>
-            {/* Filter button removed */}
           </div>
         </div>
 

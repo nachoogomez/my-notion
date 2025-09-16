@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { ChevronLeft, ChevronRight, Plus, Edit, Trash2, Clock, MapPin, User, Search } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, Edit, Trash2, Clock, MapPin, User, Search, Loader2 } from "lucide-react"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Badge } from "./ui/badge"
@@ -27,6 +27,10 @@ export function Calendar() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null)
+  
+  // Simple debounced search without custom hook
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm)
+  const [isSearching, setIsSearching] = useState(false)
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -69,6 +73,31 @@ export function Calendar() {
     }
   }, [currentDate, user?.id])
 
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      setIsSearching(false)
+    }, 300)
+
+    if (searchTerm !== debouncedSearchTerm) {
+      setIsSearching(true)
+    }
+
+    return () => clearTimeout(timer)
+  }, [searchTerm, debouncedSearchTerm])
+
+  // Handle debounced search
+  useEffect(() => {
+    if (user?.id) {
+      if (debouncedSearchTerm.trim()) {
+        searchEvents(debouncedSearchTerm)
+      } else {
+        loadEventsForMonth()
+      }
+    }
+  }, [debouncedSearchTerm, user?.id])
+
   const loadEvents = async () => {
     if (!user?.id) return
 
@@ -99,14 +128,14 @@ export function Calendar() {
     }
   }
 
-  const searchEvents = async () => {
-    if (!user?.id || !searchTerm.trim()) {
-      loadEvents()
+  const searchEvents = async (searchQuery: string) => {
+    if (!user?.id || !searchQuery.trim()) {
+      loadEventsForMonth()
       return
     }
 
     try {
-      const searchResults = await CalendarService.searchEvents(user.id, searchTerm)
+      const searchResults = await CalendarService.searchEvents(user.id, searchQuery)
       setEvents(searchResults)
     } catch (error) {
       console.error("Error searching events:", error)
@@ -284,19 +313,19 @@ export function Calendar() {
 
   if (loading) {
     return (
-      <div className="p-6 h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="p-6 min-h-full bg-[#0a0a0a] flex items-center justify-center">
         <div className="text-white text-lg">Loading calendar...</div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 h-screen bg-[#0a0a0a] overflow-auto">
+    <div className="p-3 md:p-6 min-h-full bg-[#0a0a0a]">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-bold text-white">Calendar</h1>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 md:mb-8 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <h1 className="text-2xl md:text-3xl font-bold text-white">Calendar</h1>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -306,7 +335,7 @@ export function Calendar() {
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <h2 className="text-xl font-semibold text-white min-w-[200px] text-center">
+              <h2 className="text-lg md:text-xl font-semibold text-white min-w-[150px] md:min-w-[200px] text-center">
                 {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
               </h2>
               <Button
@@ -319,44 +348,48 @@ export function Calendar() {
               </Button>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#666666] h-4 w-4" />
+              {isSearching ? (
+                <Loader2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#666666] h-4 w-4 animate-spin" />
+              ) : (
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#666666] h-4 w-4" />
+              )}
               <Input
                 placeholder="Search events..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && searchEvents()}
-                className="pl-10 bg-[#111111] border-[#1f1f1f] text-white placeholder:text-[#666666]"
+                className="pl-10 bg-[#111111] border-[#1f1f1f] text-white placeholder:text-[#666666] w-full sm:w-auto"
               />
             </div>
-            <Button onClick={() => openAddDialog()} className="bg-[#2563eb] hover:bg-[#1d4ed8]">
+            <Button onClick={() => openAddDialog()} className="bg-[#2563eb] hover:bg-[#1d4ed8] w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
-              Add Event
+              <span className="hidden sm:inline">Add Event</span>
+              <span className="sm:hidden">Add</span>
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
           {/* Calendar Grid */}
-          <div className="lg:col-span-2">
+          <div className="xl:col-span-2">
             <Card className="bg-[#111111] border-[#1f1f1f]">
-              <CardContent className="p-6">
+              <CardContent className="p-3 md:p-6">
                 {/* Days of week header */}
-                <div className="grid grid-cols-7 gap-2 mb-4">
+                <div className="grid grid-cols-7 gap-1 md:gap-2 mb-3 md:mb-4">
                   {daysOfWeek.map((day) => (
-                    <div key={day} className="text-center text-[#888888] font-medium py-2">
+                    <div key={day} className="text-center text-[#888888] font-medium py-2 text-xs md:text-sm">
                       {day}
                     </div>
                   ))}
                 </div>
 
                 {/* Calendar days */}
-                <div className="grid grid-cols-7 gap-2">
+                <div className="grid grid-cols-7 gap-1 md:gap-2">
                   {days.map((day, index) => (
                     <div
                       key={index}
-                      className={`min-h-[100px] p-2 rounded-lg border border-[#1f1f1f] cursor-pointer transition-colors ${
+                      className={`min-h-[60px] md:min-h-[100px] p-1 md:p-2 rounded-lg border border-[#1f1f1f] cursor-pointer transition-colors ${
                         day
                           ? `bg-[#1a1a1a] hover:bg-[#222222] ${
                               isToday(day) ? "ring-2 ring-[#2563eb]" : ""
@@ -368,7 +401,7 @@ export function Calendar() {
                       {day && (
                         <>
                           <div
-                            className={`text-sm font-medium mb-2 ${
+                            className={`text-xs md:text-sm font-medium mb-1 md:mb-2 ${
                               isToday(day) ? "text-[#2563eb]" : isSelected(day) ? "text-[#2563eb]" : "text-white"
                             }`}
                           >
@@ -382,7 +415,7 @@ export function Calendar() {
                                   key={event.id}
                                   className={`text-xs p-1 rounded text-white ${event.color} truncate`}
                                 >
-                                  <div className="font-medium">{event.start_time}</div>
+                                  <div className="font-medium hidden md:block">{event.start_time}</div>
                                   <div className="truncate">{event.title}</div>
                                 </div>
                               ))}

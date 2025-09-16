@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Plus, Clock, Edit, Trash2, Save, X, BarChart3, Play, Pause, CheckCircle2 } from "lucide-react"
 import { Button } from "./ui/button"
@@ -279,30 +277,32 @@ export function MyFocusView() {
 
   if (loading) {
     return (
-      <div className="p-6 h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="p-6 min-h-full bg-[#0a0a0a] flex items-center justify-center">
         <div className="text-white text-lg">Loading routines...</div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 h-screen bg-[#0a0a0a] overflow-auto">
+    <div className="p-3 md:p-6 min-h-full bg-[#0a0a0a]">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="bg-[#2563eb] rounded-2xl p-4 flex items-center justify-center">
-            <Clock className="h-6 w-6 text-white" />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6 md:mb-8">
+          <div className="flex items-center gap-4">
+            <div className="bg-[#2563eb] rounded-2xl p-3 md:p-4 flex items-center justify-center">
+              <Clock className="h-5 w-5 md:h-6 md:w-6 text-white" />
+            </div>
+            <div>
+              <p className="text-[#888888] text-sm">Good afternoon,</p>
+              <h1 className="text-white text-xl md:text-2xl font-semibold">My Focus</h1>
+            </div>
           </div>
-          <div>
-            <p className="text-[#888888] text-sm">Good afternoon,</p>
-            <h1 className="text-white text-2xl font-semibold">My Focus</h1>
-          </div>
-          <div className="ml-auto flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:ml-auto">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowStats(!showStats)}
-              className="border-[#1f1f1f] text-[#888888] hover:bg-[#1f1f1f] bg-transparent"
+              className="border-[#1f1f1f] text-[#888888] hover:bg-[#1f1f1f] bg-transparent w-full sm:w-auto"
             >
               <BarChart3 className="h-4 w-4 mr-2" />
               Stats
@@ -367,12 +367,12 @@ export function MyFocusView() {
         )}
 
         {/* Today's Overview */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-[#111111] border-[#1f1f1f] lg:col-span-2">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+          <Card className="bg-[#111111] border-[#1f1f1f] xl:col-span-2">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                Today's Schedule
-                <Badge variant="secondary" className="bg-[#2563eb] text-white">
+              <CardTitle className="text-white flex flex-col sm:flex-row sm:items-center gap-2">
+                <span>Today's Schedule</span>
+                <Badge variant="secondary" className="bg-[#2563eb] text-white w-fit">
                   {DAYS_OF_WEEK.find((day) => day.key === getCurrentDay())?.label}
                 </Badge>
               </CardTitle>
@@ -389,21 +389,23 @@ export function MyFocusView() {
                         className="flex items-center gap-3 p-3 rounded-lg bg-[#1a1a1a] hover:bg-[#1f1f1f] transition-colors group"
                       >
                         <div className={`w-3 h-3 rounded-full ${routine.color}`} />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-white font-medium">{routine.title}</h3>
-                            <Badge variant="secondary" className="text-xs bg-[#1f1f1f] text-[#888888]">
-                              {routine.category}
-                            </Badge>
-                            {instance && (
-                              <Badge
-                                variant="secondary"
-                                className={`text-xs text-white ${getStatusColor(instance.status)}`}
-                              >
-                                {getStatusIcon(instance.status)}
-                                <span className="ml-1 capitalize">{instance.status}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
+                            <h3 className="text-white font-medium truncate">{routine.title}</h3>
+                            <div className="flex flex-wrap gap-1">
+                              <Badge variant="secondary" className="text-xs bg-[#1f1f1f] text-[#888888]">
+                                {routine.category}
                               </Badge>
-                            )}
+                              {instance && (
+                                <Badge
+                                  variant="secondary"
+                                  className={`text-xs text-white ${getStatusColor(instance.status)}`}
+                                >
+                                  {getStatusIcon(instance.status)}
+                                  <span className="ml-1 capitalize">{instance.status}</span>
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                           <p className="text-[#888888] text-sm">
                             {formatTime(routine.start_time)} - {formatTime(routine.end_time)}
@@ -412,7 +414,7 @@ export function MyFocusView() {
                         </div>
 
                         {instance && (
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                             {instance.status === "scheduled" && (
                               <>
                                 <Button
@@ -484,11 +486,11 @@ export function MyFocusView() {
             <CardTitle className="text-white">Weekly Routine</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4">
               {DAYS_OF_WEEK.map((day) => (
                 <div key={day.key} className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <h3 className={`font-medium ${day.key === getCurrentDay() ? "text-[#2563eb]" : "text-white"}`}>
+                    <h3 className={`font-medium text-sm ${day.key === getCurrentDay() ? "text-[#2563eb]" : "text-white"}`}>
                       {day.short}
                     </h3>
                     <Button
@@ -501,7 +503,7 @@ export function MyFocusView() {
                     </Button>
                   </div>
 
-                  <div className="space-y-2 min-h-[200px]">
+                  <div className="space-y-2 min-h-[150px] md:min-h-[200px]">
                     {weeklyRoutines[day.key]
                       .filter(
                         (item): item is Routine =>
@@ -520,7 +522,7 @@ export function MyFocusView() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1 mb-1">
                                 <div className={`w-2 h-2 rounded-full ${item.color}`} />
-                                <span className="text-white text-xs font-medium truncate max-w-[120px] block">{item.title}</span>
+                                <span className="text-white text-xs font-medium truncate max-w-[100px] md:max-w-[120px] block">{item.title}</span>
                               </div>
                               <p className="text-[#888888] text-xs">
                                 {formatTime(item.start_time)} - {formatTime(item.end_time)}

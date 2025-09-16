@@ -88,6 +88,42 @@ layer base {
     width: 100% !important;
     max-width: none !important;
   }
+  
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    /* Improve touch targets */
+    button, [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Better spacing on mobile */
+    .mobile-padding {
+      padding: 0.75rem;
+    }
+    
+    /* Improve text readability */
+    .mobile-text {
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+    }
+    
+    /* Better grid spacing on mobile */
+    .mobile-grid {
+      gap: 0.75rem;
+    }
+  }
+  
+  /* Tablet optimizations */
+  @media (min-width: 768px) and (max-width: 1024px) {
+    .tablet-padding {
+      padding: 1rem;
+    }
+    
+    .tablet-grid {
+      gap: 1rem;
+    }
+  }
 }
 
 .line-clamp-6 {

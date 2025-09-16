@@ -4,9 +4,7 @@ import Routes from './routes/Routes'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './routes/ProtectedRoutes'
 
-
 function App() {
-
   return (
     <AuthProvider>
       <ProtectedRoute>

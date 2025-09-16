@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Plus, Search, Pin, Trash2 } from "lucide-react"
+import { Plus, Search, Pin, Trash2, Loader2 } from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Card, CardContent } from "./ui/card"
@@ -16,6 +16,10 @@ export function NotesView() {
   const [selectedNote, setSelectedNote] = useState<Note | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [isCreatingNew, setIsCreatingNew] = useState(false)
+  
+  // Simple debounced search without custom hook
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm)
+  const [isSearching, setIsSearching] = useState(false)
 
   // Load notes when component mounts or user changes
   useEffect(() => {
@@ -24,34 +28,40 @@ export function NotesView() {
     }
   }, [user?.id])
 
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      setIsSearching(false)
+    }, 300)
+
+    if (searchTerm !== debouncedSearchTerm) {
+      setIsSearching(true)
+    }
+
+    return () => clearTimeout(timer)
+  }, [searchTerm, debouncedSearchTerm])
+
+  // Handle debounced search
+  useEffect(() => {
+    if (user?.id) {
+      loadNotes()
+    }
+  }, [debouncedSearchTerm, user?.id])
+
   const loadNotes = async () => {
     if (!user?.id) return
 
     try {
       setLoading(true)
       const userNotes = await NoteService.getUserNotes(user.id, {
-        search: searchTerm || undefined,
+        search: debouncedSearchTerm || undefined,
       })
       setNotes(userNotes)
     } catch (error) {
       console.error("Error loading notes:", error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handleSearch = async () => {
-    if (!user?.id) return
-
-    try {
-      if (searchTerm.trim()) {
-        const searchResults = await NoteService.searchNotes(user.id, searchTerm)
-        setNotes(searchResults)
-      } else {
-        loadNotes()
-      }
-    } catch (error) {
-      console.error("Error searching notes:", error)
     }
   }
 
@@ -155,7 +165,7 @@ export function NotesView() {
 
   if (loading) {
     return (
-      <div className="p-6 h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="p-6 min-h-full bg-[#0a0a0a] flex items-center justify-center">
         <div className="text-white text-lg">Cargando notas...</div>
       </div>
     )
@@ -212,36 +222,40 @@ export function NotesView() {
   )
 
   return (
-    <div className="p-6 h-screen bg-[#0a0a0a] overflow-auto">
+    <div className="p-3 md:p-6 min-h-full bg-[#0a0a0a]">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 md:mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-1">Mis Notas</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">Mis Notas</h1>
           </div>
-          <Button onClick={handleNewNote} className="bg-[#2563eb] hover:bg-[#1d4ed8] flex items-center gap-2">
+          <Button onClick={handleNewNote} className="bg-[#2563eb] hover:bg-[#1d4ed8] flex items-center gap-2 w-full sm:w-auto">
             <Plus className="h-4 w-4" />
-            Nueva nota
+            <span className="hidden sm:inline">Nueva nota</span>
+            <span className="sm:hidden">Nueva</span>
           </Button>
         </div>
 
         {/* Search */}
-        <div className="mb-8">
-          <div className="relative w-full"> {/* Cambiado de max-w-2xl a w-full */}
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#666666] h-5 w-5" />
+        <div className="mb-6 md:mb-8">
+          <div className="relative w-full">
+            {isSearching ? (
+              <Loader2 className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#666666] h-5 w-5 animate-spin" />
+            ) : (
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#666666] h-5 w-5" />
+            )}
             <Input
               placeholder="Buscar notas..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-              className="pl-12 bg-[#1a1a1a] border-[#2a2a2a] text-white placeholder:text-[#666666] h-12 text-base w-full" // <-- agregado w-full
+              className="pl-12 bg-[#1a1a1a] border-[#2a2a2a] text-white placeholder:text-[#666666] h-12 text-base w-full"
             />
           </div>
         </div>
 
         {/* Notes Grid */}
         {notes.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
             {notes.map((note) => (
               <NoteCard key={note.id} note={note} />
             ))}
