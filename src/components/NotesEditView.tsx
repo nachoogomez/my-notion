@@ -3,6 +3,8 @@ import { ArrowLeft, Pin } from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Textarea } from "./ui/textarea"
+import { ConfirmDialog } from "./ui/confirm-dialog"
+import { useConfirm } from "../hooks/use-confirm"
 import type { Note } from "../types/note"
 
 interface NoteEditViewProps {
@@ -14,6 +16,7 @@ interface NoteEditViewProps {
 }
 
 export function NoteEditView({ note, onBack, onSave, onDelete, onTogglePin }: NoteEditViewProps) {
+  const { confirm, close, handleConfirm, isOpen: isConfirmOpen, options: confirmOptions } = useConfirm()
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
   const [isPinned, setIsPinned] = useState(false)
@@ -55,11 +58,21 @@ export function NoteEditView({ note, onBack, onSave, onDelete, onTogglePin }: No
     onSave(noteData)
   }
 
-  const handleDelete = () => {
-    if (note && onDelete && window.confirm("¿Estás seguro de que quieres eliminar esta nota?")) {
-      onDelete(note.id)
-      onBack()
-    }
+  const handleDelete = async () => {
+    if (!note || !onDelete) return
+
+    const confirmed = await confirm({
+      title: "Delete Note",
+      description: `Are you sure you want to delete "${note.title}"? This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      variant: "danger"
+    })
+
+    if (!confirmed) return
+
+    onDelete(note.id)
+    onBack()
   }
 
   const handleTogglePin = () => {
@@ -150,6 +163,18 @@ export function NoteEditView({ note, onBack, onSave, onDelete, onTogglePin }: No
           />
         </div>
       </div>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onClose={close}
+        onConfirm={handleConfirm}
+        title={confirmOptions?.title || ""}
+        description={confirmOptions?.description || ""}
+        confirmText={confirmOptions?.confirmText}
+        cancelText={confirmOptions?.cancelText}
+        variant={confirmOptions?.variant}
+      />
     </div>
   )
 }

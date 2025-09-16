@@ -6,7 +6,10 @@ import { Badge } from "./ui/badge"
 import { Input } from "./ui/input"
 import { Textarea } from "./ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
+import { ConfirmDialog } from "./ui/confirm-dialog"
 import { useAuth } from "../context/AuthContext"
+import { useToast } from "../hooks/use-toast"
+import { useConfirm } from "../hooks/use-confirm"
 import { CalendarService } from "../services/calendarServices"
 import type { CalendarEvent, CreateCalendarEventData } from "../types/calendar"
 
@@ -20,6 +23,8 @@ const EVENT_TYPES = [
 
 export function Calendar() {
   const { user } = useAuth()
+  const { showSuccess, showError } = useToast()
+  const { confirm, close, handleConfirm, isOpen: isConfirmOpen, options: confirmOptions } = useConfirm()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [events, setEvents] = useState<CalendarEvent[]>([])
@@ -259,14 +264,24 @@ export function Calendar() {
   }
 
   const handleDelete = async (eventId: string) => {
-    if (!window.confirm("Are you sure you want to delete this event?")) return
+    const event = events.find(e => e.id === eventId)
+    const confirmed = await confirm({
+      title: "Delete Event",
+      description: `Are you sure you want to delete "${event?.title || 'this event'}"? This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      variant: "danger"
+    })
+
+    if (!confirmed) return
 
     try {
       await CalendarService.deleteEvent(eventId)
       setEvents(events.filter((event) => event.id !== eventId))
+      showSuccess("Event deleted", "The event has been removed from your calendar.")
     } catch (error) {
       console.error("Error deleting event:", error)
-      alert("Error deleting event. Please try again.")
+      showError("Error deleting event", "Please try again.")
     }
   }
 
@@ -654,6 +669,18 @@ export function Calendar() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Confirm Dialog */}
+        <ConfirmDialog
+          isOpen={isConfirmOpen}
+          onClose={close}
+          onConfirm={handleConfirm}
+          title={confirmOptions?.title || ""}
+          description={confirmOptions?.description || ""}
+          confirmText={confirmOptions?.confirmText}
+          cancelText={confirmOptions?.cancelText}
+          variant={confirmOptions?.variant}
+        />
       </div>
     </div>
   )

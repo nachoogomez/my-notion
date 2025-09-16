@@ -4,12 +4,17 @@ import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Card, CardContent } from "./ui/card"
 import { NoteEditView } from "./NotesEditView"
+import { ConfirmDialog } from "./ui/confirm-dialog"
 import { useAuth } from "../context/AuthContext"
+import { useToast } from "../hooks/use-toast"
+import { useConfirm } from "../hooks/use-confirm"
 import { NoteService } from "../services/noteServices"
 import type { Note, CreateNoteData } from "../types/note"
 
 export function NotesView() {
   const { user } = useAuth()
+  const { showSuccess, showError } = useToast()
+  const { confirm, close, handleConfirm, isOpen: isConfirmOpen, options: confirmOptions } = useConfirm()
   const [notes, setNotes] = useState<Note[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
@@ -114,12 +119,24 @@ export function NotesView() {
   }
 
   const handleDeleteNote = async (noteId: string) => {
+    const note = notes.find(n => n.id === noteId)
+    const confirmed = await confirm({
+      title: "Delete Note",
+      description: `Are you sure you want to delete "${note?.title || 'this note'}"? This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      variant: "danger"
+    })
+
+    if (!confirmed) return
+
     try {
       await NoteService.deleteNote(noteId)
       setNotes(notes.filter((note) => note.id !== noteId))
+      showSuccess("Note deleted", "The note has been removed from your collection.")
     } catch (error) {
       console.error("Error deleting note:", error)
-      alert("Error al eliminar la nota. Inténtalo de nuevo.")
+      showError("Error deleting note", "Please try again.")
     }
   }
 
@@ -274,6 +291,18 @@ export function NotesView() {
             )}
           </div>
         )}
+
+        {/* Confirm Dialog */}
+        <ConfirmDialog
+          isOpen={isConfirmOpen}
+          onClose={close}
+          onConfirm={handleConfirm}
+          title={confirmOptions?.title || ""}
+          description={confirmOptions?.description || ""}
+          confirmText={confirmOptions?.confirmText}
+          cancelText={confirmOptions?.cancelText}
+          variant={confirmOptions?.variant}
+        />
       </div>
     </div>
   )

@@ -7,6 +7,9 @@ import { Badge } from "./ui/badge"
 import { Textarea } from "./ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
 import { useAuth } from "../context/AuthContext"
+import { useToast } from "../hooks/use-toast"
+import { useConfirm } from "../hooks/use-confirm"
+import { ConfirmDialog } from "./ui/confirm-dialog"
 import { TaskService } from "../services/taskServices"
 import type { Task, CreateTaskData, TaskStats } from "../types/task"
 
@@ -31,6 +34,8 @@ const PRIORITIES = [
 
 export function TasksView() {
   const { user } = useAuth()
+  const { showSuccess, showError, showInfo } = useToast()
+  const { confirm, close, handleConfirm, isOpen: isConfirmOpen, options: confirmOptions } = useConfirm()
   const [tasks, setTasks] = useState<Task[]>([])
   const [stats, setStats] = useState<TaskStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -121,9 +126,16 @@ export function TasksView() {
       const updatedTask = await TaskService.toggleTaskCompletion(taskId)
       setTasks(tasks.map((task) => (task.id === taskId ? updatedTask : task)))
       loadStats() // Reload stats after completion change
+      
+      // Show success toast
+      if (updatedTask.completed) {
+        showSuccess("Task completed!", "Great job on finishing this task.")
+      } else {
+        showInfo("Task reopened", "Task has been marked as pending.")
+      }
     } catch (error) {
       console.error("Error toggling task:", error)
-      alert("Error updating task. Please try again.")
+      showError("Error updating task", "Please try again.")
     }
   }
 
@@ -147,9 +159,10 @@ export function TasksView() {
       })
       setIsCreateDialogOpen(false)
       loadStats()
+      showSuccess("Task created successfully!", "Your new task has been added to the list.")
     } catch (error) {
       console.error("Error creating task:", error)
-      alert("Error creating task. Please try again.")
+      showError("Error creating task", "Please try again.")
     }
   }
 
@@ -180,36 +193,56 @@ export function TasksView() {
       setIsEditDialogOpen(false)
       setEditingTask(null)
       loadStats()
+      showSuccess("Task updated!", "Your changes have been saved.")
     } catch (error) {
       console.error("Error updating task:", error)
-      alert("Error updating task. Please try again.")
+      showError("Error updating task", "Please try again.")
     }
   }
 
   const deleteTask = async (taskId: string) => {
-    if (!window.confirm("Are you sure you want to delete this task?")) return
+    const confirmed = await confirm({
+      title: "Delete Task",
+      description: "Are you sure you want to delete this task? This action cannot be undone.",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      variant: "danger"
+    })
+
+    if (!confirmed) return
 
     try {
       await TaskService.deleteTask(taskId)
       setTasks(tasks.filter((task) => task.id !== taskId))
       loadStats()
+      showSuccess("Task deleted", "The task has been removed from your list.")
     } catch (error) {
       console.error("Error deleting task:", error)
-      alert("Error deleting task. Please try again.")
+      showError("Error deleting task", "Please try again.")
     }
   }
 
   const deleteAllCompletedTasks = async () => {
     if (!user?.id) return
-    if (!window.confirm(`Are you sure you want to delete all ${completedTasks.length} completed tasks? This action cannot be undone.`)) return
+
+    const confirmed = await confirm({
+      title: "Delete All Completed Tasks",
+      description: `Are you sure you want to delete all ${completedTasks.length} completed tasks? This action cannot be undone.`,
+      confirmText: "Delete All",
+      cancelText: "Cancel",
+      variant: "danger"
+    })
+
+    if (!confirmed) return
 
     try {
       await TaskService.deleteAllCompleteTasks(user.id)
       await loadTasks()
       await loadStats()
+      showSuccess("All completed tasks deleted", `${completedTasks.length} completed tasks have been removed.`)
     } catch (error) {
       console.error("Error deleting all completed tasks:", error)
-      alert("Error deleting completed tasks. Please try again.")
+      showError("Error deleting completed tasks", "Please try again.")
     }
   }
 
@@ -641,6 +674,18 @@ export function TasksView() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Confirm Dialog */}
+        <ConfirmDialog
+          isOpen={isConfirmOpen}
+          onClose={close}
+          onConfirm={handleConfirm}
+          title={confirmOptions?.title || ""}
+          description={confirmOptions?.description || ""}
+          confirmText={confirmOptions?.confirmText}
+          cancelText={confirmOptions?.cancelText}
+          variant={confirmOptions?.variant}
+        />
       </div>
     </div>
   )

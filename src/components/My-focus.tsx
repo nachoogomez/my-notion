@@ -6,7 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
 import { Badge } from "./ui/badge"
 import { Textarea } from "./ui/textarea"
+import { ConfirmDialog } from "./ui/confirm-dialog"
 import { useAuth } from "../context/AuthContext"
+import { useToast } from "../hooks/use-toast"
+import { useConfirm } from "../hooks/use-confirm"
 import { RoutineService } from "../services/routineServices"
 import type {
   Routine,
@@ -43,6 +46,8 @@ const CATEGORIES = [
 
 export function MyFocusView() {
   const { user } = useAuth()
+  const { showSuccess, showError } = useToast()
+  const { confirm, close, handleConfirm, isOpen: isConfirmOpen, options: confirmOptions } = useConfirm()
   const [weeklyRoutines, setWeeklyRoutines] = useState<WeeklyRoutineView>({
     monday: [],
     tuesday: [],
@@ -203,7 +208,16 @@ export function MyFocusView() {
   }
 
   const handleDelete = async (routineId: string, day: DayOfWeek) => {
-    if (!window.confirm("Are you sure you want to delete this routine?")) return
+    const routine = weeklyRoutines[day].find(r => r.id === routineId)
+    const confirmed = await confirm({
+      title: "Delete Routine",
+      description: `Are you sure you want to delete "${routine?.title || 'this routine'}"? This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      variant: "danger"
+    })
+
+    if (!confirmed) return
 
     try {
       await RoutineService.deleteRoutine(routineId)
@@ -216,9 +230,10 @@ export function MyFocusView() {
 
       loadTodayView() // Refresh today view
       loadStats() // Refresh stats
+      showSuccess("Routine deleted", "The routine has been removed from your schedule.")
     } catch (error) {
       console.error("Error deleting routine:", error)
-      alert("Error deleting routine. Please try again.")
+      showError("Error deleting routine", "Please try again.")
     }
   }
 
@@ -654,6 +669,18 @@ export function MyFocusView() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Confirm Dialog */}
+        <ConfirmDialog
+          isOpen={isConfirmOpen}
+          onClose={close}
+          onConfirm={handleConfirm}
+          title={confirmOptions?.title || ""}
+          description={confirmOptions?.description || ""}
+          confirmText={confirmOptions?.confirmText}
+          cancelText={confirmOptions?.cancelText}
+          variant={confirmOptions?.variant}
+        />
       </div>
     </div>
   )
